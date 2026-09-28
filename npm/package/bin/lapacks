@@ -27,6 +27,8 @@ ${c.bold('オプション:')}
       --no-color   色を付けない
   -h, --help       このヘルプ
   -v, --version    バージョン
+
+作者: Lapius (https://github.com/Lapius7)
 `;
 
 const ALIAS = {
@@ -62,7 +64,7 @@ async function main(argv) {
     } else if (!sub) sub = ALIAS[a] || a;
     else o.args.push(a);
   }
-  if (o.version) return console.log('lapacks ' + cmd.VERSION), 0;
+  if (o.version) return console.log('lapacks ' + cmd.VERSION + '\n作者: Lapius (https://github.com/Lapius7)'), 0;
   if (o.help || sub === 'help') return process.stdout.write(USAGE()), 0;
   if (o.json) ui.setColor(false);
 
