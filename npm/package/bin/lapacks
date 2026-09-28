@@ -1,0 +1,100 @@
+#!/usr/bin/env node
+// lapacks - @lapius のパッケージをまとめて管理する。
+'use strict';
+
+const ui = require('../lib/ui');
+const cmd = require('../lib/commands');
+const { c } = ui;
+
+const USAGE = () => `${c.bold(c.accent('lapacks'))} ${c.gray('v' + cmd.VERSION)} - @lapius のパッケージをまとめて管理する
+
+${c.bold('使い方:')}
+  lapacks                     対話画面で操作する（端末のとき）
+  lapacks list                一覧（${c.cyan('-i')} 入っているものだけ / ${c.cyan('--json')}）
+  lapacks outdated            更新できるものだけ
+  lapacks info <名前>          説明・コマンド・必要なもの・リンク
+  lapacks install <名前...>    入れる（${c.cyan('all')} ですべて）
+  lapacks update [名前...]     更新する（省略すると入っているものすべて）
+  lapacks remove <名前...>     消す（${c.cyan('-y')} で確認を省略）
+  lapacks doctor              環境と、コマンドが正しく使えるかを確認
+
+  名前は ${c.cyan('sca-cli')} / ${c.cyan('@lapius/sca-cli')} / コマンド名の ${c.cyan('sca')} のどれでも指定できます。
+
+${c.bold('オプション:')}
+  -r, --refresh    npm レジストリから情報を取り直す（通常は 10 分キャッシュ）
+  -f, --force      最新でも入れ直す（install）
+  -y, --yes        確認を省略する（remove）
+      --no-color   色を付けない
+  -h, --help       このヘルプ
+  -v, --version    バージョン
+`;
+
+const ALIAS = {
+  ls: 'list',
+  l: 'list',
+  outdated: 'outdated',
+  show: 'info',
+  i: 'install',
+  add: 'install',
+  up: 'update',
+  upgrade: 'update',
+  u: 'update',
+  rm: 'remove',
+  uninstall: 'remove',
+  un: 'remove',
+};
+
+async function main(argv) {
+  const o = { args: [] };
+  let sub = '';
+  for (const a of argv) {
+    if (a === '-h' || a === '--help') o.help = true;
+    else if (a === '-v' || a === '--version') o.version = true;
+    else if (a === '-r' || a === '--refresh') o.refresh = true;
+    else if (a === '-f' || a === '--force') o.force = true;
+    else if (a === '-y' || a === '--yes') o.yes = true;
+    else if (a === '-i' || a === '--installed') o.installed = true;
+    else if (a === '--json') o.json = true;
+    else if (a === '--no-color') ui.setColor(false);
+    else if (a.startsWith('-')) {
+      console.error(`lapacks: 不明なオプション ${a}（lapacks -h でヘルプ）`);
+      return 2;
+    } else if (!sub) sub = ALIAS[a] || a;
+    else o.args.push(a);
+  }
+  if (o.version) return console.log('lapacks ' + cmd.VERSION), 0;
+  if (o.help || sub === 'help') return process.stdout.write(USAGE()), 0;
+  if (o.json) ui.setColor(false);
+
+  switch (sub) {
+    case '':
+      if (process.stdout.isTTY && process.stdin.isTTY) return require('../lib/tui').run();
+      return cmd.list(o);
+    case 'list':
+      return cmd.list(o);
+    case 'outdated':
+      return cmd.list({ ...o, outdated: true });
+    case 'info':
+      return cmd.info(o);
+    case 'install':
+      return cmd.install(o);
+    case 'update':
+      return cmd.update(o);
+    case 'remove':
+      return cmd.remove(o);
+    case 'doctor':
+      return cmd.doctor(o);
+    default:
+      console.error(`lapacks: 不明なコマンド ${sub}（lapacks -h でヘルプ）`);
+      return 2;
+  }
+}
+
+main(process.argv.slice(2)).then(
+  (code) => process.exit(code || 0),
+  (e) => {
+    process.stdout.write('\x1b[?25h');
+    console.error(c.red('lapacks: ') + (e && e.message ? e.message : e));
+    process.exit(1);
+  },
+);

@@ -1,0 +1,19 @@
+{
+  "name": "@lapius/lapacks",
+  "version": "0.0.0",
+  "description": "@lapius のパッケージ（why・sca・laping など）をまとめて一覧・インストール・更新・削除できる管理 CLI",
+  "keywords": ["cli", "package-manager", "lapius", "npm", "tui"],
+  "homepage": "https://github.com/Lapius7/lapacks",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lapius7/lapacks.git"
+  },
+  "license": "MIT",
+  "bin": {
+    "lapacks": "bin/lapacks"
+  },
+  "files": ["bin/lapacks", "lib/"],
+  "engines": {
+    "node": ">=18"
+  }
+}
