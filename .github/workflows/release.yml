@@ -1,0 +1,28 @@
+# v* タグの push で npm（@lapius/lapacks）に公開し、GitHub Release を作る
+#   git tag v0.1.0 && git push origin v0.1.0
+# npm 側の Trusted Publisher（~/sh/npm-trust.sh で設定）で OIDC 認証する。トークンは不要。
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest # OIDC での公開には npm 11.5.1 以降が必要
+      - run: node npm/build.mjs "${GITHUB_REF_NAME#v}" --publish
+      - name: GitHub Release を作成（既にあれば飛ばす）
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
