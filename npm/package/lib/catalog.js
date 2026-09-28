@@ -21,6 +21,7 @@ const CATALOG = [
   { name: 'tsbuild', cat: '開発', short: 'Bun + TypeScript 開発サーバーをホットリロード付きで起動', bin: ['tsbuild'], needs: ['python', 'bun'] },
   { name: 'go-uuid', cat: '開発', short: 'UUID を返すシンプルな HTTP サーバー', bin: ['go-uuid'] },
   { name: 'clilap', cat: 'Web', short: 'clilap.org（天気・DNS・ハッシュなど）のクライアント', bin: ['clilap'] },
+  { name: 'clilap-codepush', cat: 'Web', short: 'codepush.clilap.org にファイルを置いて共有（TUI）', bin: ['codepush'], needs: ['python'] },
   { name: 'sca-cli', cat: 'Web', short: 'chatapp.lapius7.com のチャットをターミナルで', bin: ['sca'], needs: ['python?'] },
   { name: 'bin-cli', cat: 'Web', short: 'bin.lapius7.com（LapBin）のクライアント', bin: ['bin'] },
   { name: 'ohatwikeeper-cli', cat: 'Web', short: 'おはツイKeeper 公式 CLI', bin: ['ohax'] },
