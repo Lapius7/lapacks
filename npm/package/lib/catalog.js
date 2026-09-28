@@ -24,9 +24,10 @@ const CATALOG = [
   { name: 'sca-cli', cat: 'Web', short: 'chatapp.lapius7.com のチャットをターミナルで', bin: ['sca'], needs: ['python?'] },
   { name: 'bin-cli', cat: 'Web', short: 'bin.lapius7.com（LapBin）のクライアント', bin: ['bin'] },
   { name: 'ohatwikeeper-cli', cat: 'Web', short: 'おはツイKeeper 公式 CLI', bin: ['ohax'] },
+  { name: 'cli-othello', cat: 'ゲーム', short: 'ターミナルで遊ぶオセロ（5 段階の AI）', bin: ['othello'], needs: ['python'] },
 ];
 
-const CATS = ['シェル', '言語', '開発', 'Web', 'その他'];
+const CATS = ['シェル', '言語', '開発', 'Web', 'ゲーム', 'その他'];
 
 // 公開はしているが作者専用のもの（dela-cli は登録済みの鍵でしか接続できない）。一覧には出さない
 const HIDDEN = new Set(['dela-cli']);
