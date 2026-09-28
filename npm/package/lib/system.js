@@ -144,13 +144,6 @@ const REQS = {
           };
     },
   },
-  ssh: {
-    label: 'ssh',
-    check() {
-      const v = versionOf('ssh', ['-V'], /(OpenSSH[^\s,]*)/);
-      return v ? { ok: true, detail: v } : { ok: false, detail: '見つかりません', fix: 'OpenSSH クライアントを入れてください' };
-    },
-  },
 };
 
 const reqCache = {};

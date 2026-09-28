@@ -362,7 +362,7 @@ async function doctor(o) {
   add('環境', onPath ? 'ok' : 'ng', `グローバルの bin ${c.gray(bin)}`, onPath ? '' : 'このディレクトリを PATH に加えてください');
 
   const inst = st.packages.filter((p) => p.status !== 'missing');
-  for (const key of ['python', 'bun', 'ssh']) {
+  for (const key of ['python', 'bun']) {
     const users = st.packages.filter((p) => p.needs.some((n) => n.replace(/\?$/, '') === key));
     const using = users.filter((p) => p.status !== 'missing');
     const r = sys.checkReq(key);

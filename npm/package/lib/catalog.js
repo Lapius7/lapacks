@@ -21,13 +21,15 @@ const CATALOG = [
   { name: 'tsbuild', cat: '開発', short: 'Bun + TypeScript 開発サーバーをホットリロード付きで起動', bin: ['tsbuild'], needs: ['python', 'bun'] },
   { name: 'go-uuid', cat: '開発', short: 'UUID を返すシンプルな HTTP サーバー', bin: ['go-uuid'] },
   { name: 'clilap', cat: 'Web', short: 'clilap.org（天気・DNS・ハッシュなど）のクライアント', bin: ['clilap'] },
-  { name: 'dela-cli', cat: 'Web', short: 'ローカルのポートを deploy.lapius7.com で公開', bin: ['dela'], needs: ['ssh'] },
   { name: 'sca-cli', cat: 'Web', short: 'chatapp.lapius7.com のチャットをターミナルで', bin: ['sca'], needs: ['python?'] },
   { name: 'bin-cli', cat: 'Web', short: 'bin.lapius7.com（LapBin）のクライアント', bin: ['bin'] },
   { name: 'ohatwikeeper-cli', cat: 'Web', short: 'おはツイKeeper 公式 CLI', bin: ['ohax'] },
 ];
 
 const CATS = ['シェル', '言語', '開発', 'Web', 'その他'];
+
+// 公開はしているが作者専用のもの（dela-cli は登録済みの鍵でしか接続できない）。一覧には出さない
+const HIDDEN = new Set(['dela-cli']);
 
 // OS/CPU 別のバイナリパッケージ（本体の optionalDependencies）は一覧に出さない
 const PLATFORM = /-(linux|darwin|win32|freebsd)-(x64|arm64|ia32|arm)$/;
@@ -81,6 +83,7 @@ async function discover() {
     // 検索に失敗しても、CATALOG の分は個別に取れる
   }
   names.delete(SELF);
+  for (const n of HIDDEN) names.delete(n);
   return [...names];
 }
 
@@ -120,7 +123,7 @@ async function load({ refresh = false } = {}) {
   }
   const remote = (idx && idx.remote) || {};
   const known = new Map(CATALOG.map((p, i) => [p.name, { ...p, order: i }]));
-  const names = new Set([...known.keys(), ...Object.keys(remote).filter((n) => n !== SELF)]);
+  const names = new Set([...known.keys(), ...Object.keys(remote).filter((n) => n !== SELF && !HIDDEN.has(n))]);
   const packages = [...names].map((name) => {
     const base = known.get(name) || { name, cat: 'その他', order: 1e6 };
     const r = remote[name] || {};
