@@ -116,8 +116,27 @@ function versionOf(cmd, args, re) {
   return m ? m[1] : '';
 }
 
+// コマンドがあるかだけを見る前提ツール（ytdlpdownloader 用）
+function cmdReq(label, cmd, args, re, fix, min) {
+  return {
+    label,
+    check() {
+      if (WIN) return { ok: false, detail: 'Windows は非対応（WSL で使う）' };
+      const v = versionOf(cmd, args, re);
+      if (!v) return { ok: false, detail: '見つかりません', fix };
+      const low = min && v.split('.').map(Number).reduce((d, n, i) => d || n - (min[i] ?? 0), 0) < 0;
+      return low ? { ok: false, detail: `${cmd} ${v}（古い）`, fix } : { ok: true, detail: `${cmd} ${v}` };
+    },
+  };
+}
+
 // 前提ツール。check() は { ok, detail } を返す
 const REQS = {
+  zsh: cmdReq('zsh', 'zsh', ['--version'], /zsh (\d+\.\d+(?:\.\d+)?)/, 'sudo apt install zsh'),
+  'yt-dlp': cmdReq('yt-dlp', 'yt-dlp', ['--version'], /(\d+\.\d+\.\d+)/, 'pipx install yt-dlp'),
+  fzf: cmdReq('fzf 0.63+', 'fzf', ['--version'], /(\d+\.\d+(?:\.\d+)?)/, 'https://github.com/junegunn/fzf#installation', [0, 63]),
+  ffmpeg: cmdReq('FFmpeg', 'ffmpeg', ['-version'], /ffmpeg version n?(\d+(?:\.\d+)*)/, 'sudo apt install ffmpeg'),
+  jq: cmdReq('jq', 'jq', ['--version'], /jq-(\d+\.\d+(?:\.\d+)?)/, 'sudo apt install jq'),
   python: {
     label: 'Python 3.9+',
     check() {

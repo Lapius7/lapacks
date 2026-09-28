@@ -26,9 +26,10 @@ const CATALOG = [
   { name: 'bin-cli', cat: 'Web', short: 'bin.lapius7.com（LapBin）のクライアント', bin: ['bin'] },
   { name: 'ohatwikeeper-cli', cat: 'Web', short: 'おはツイKeeper 公式 CLI', bin: ['ohax'] },
   { name: 'cli-othello', cat: 'ゲーム', short: 'ターミナルで遊ぶオセロ（5 段階の AI）', bin: ['othello'], needs: ['python'] },
+  { name: 'ytdlpdownloader', cat: 'メディア', short: 'yt-dlp をメニューで操作（動画・音声・画像、YouTube 以外も）', bin: ['yd'], needs: ['zsh', 'yt-dlp', 'fzf', 'ffmpeg', 'jq'] },
 ];
 
-const CATS = ['シェル', '言語', '開発', 'Web', 'ゲーム', 'その他'];
+const CATS = ['シェル', '言語', '開発', 'Web', 'メディア', 'ゲーム', 'その他'];
 
 // 公開はしているが作者専用のもの（dela-cli は登録済みの鍵でしか接続できない）。一覧には出さない
 const HIDDEN = new Set(['dela-cli']);
