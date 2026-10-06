@@ -25,7 +25,7 @@ const CATALOG = [
   { name: 'clilap-codepush', cat: 'Web', short: 'codepush.clilap.org にファイルを置いて共有（TUI）', bin: ['codepush'], needs: ['python'] },
   { name: 'sca-cli', cat: 'Web', short: 'chatapp.lapius7.com のチャットをターミナルで', bin: ['sca'], needs: ['python?'] },
   { name: 'bin-cli', cat: 'Web', short: 'bin.lapius7.com（LapBin）のクライアント', bin: ['bin'] },
-  { name: 'ohatwikeeper-cli', cat: 'Web', short: 'おはツイKeeper 公式 CLI', bin: ['ohax'] },
+  { name: 'ohatwikeeper-cli', pkg: '@ohatwikeeper/cli', cat: 'Web', short: 'おはツイKeeper 公式 CLI', bin: ['ohax'] },
   { name: 'cli-othello', cat: 'ゲーム', short: 'ターミナルで遊ぶオセロ（5 段階の AI）', bin: ['othello'], needs: ['python'] },
   { name: 'ytdlpdownloader', cat: 'メディア', short: 'yt-dlp をメニューで操作（動画・音声・画像、YouTube 以外も）', bin: ['yd'], needs: ['zsh', 'yt-dlp', 'fzf', 'ffmpeg', 'jq'] },
 ];
@@ -72,7 +72,8 @@ async function getJSON(url) {
   return res.json();
 }
 
-const enc = (name) => `${SCOPE}%2f${name}`;
+const pkgOf = (name) => { const p = CATALOG.find((x) => x.name === name); return (p && p.pkg) || `${SCOPE}/${name}`; };
+const enc = (name) => pkgOf(name).replace('/', '%2f');
 
 // レジストリの検索は反映が遅れることがあるので、CATALOG の名前と合わせて使う
 async function discover() {
@@ -133,7 +134,7 @@ async function load({ refresh = false } = {}) {
     const r = remote[name] || {};
     return {
       name,
-      full: `${SCOPE}/${name}`,
+      full: pkgOf(name),
       cat: base.cat,
       order: base.order,
       short: base.short || shorten(r.description) || '',
@@ -196,4 +197,4 @@ function suggest(packages, q) {
   return best;
 }
 
-module.exports = { SCOPE, SELF, CATS, load, resolve, suggest };
+module.exports = { CATALOG, SCOPE, SELF, CATS, load, resolve, suggest };

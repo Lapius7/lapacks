@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
-const { SCOPE } = require('./catalog');
+const { SCOPE, CATALOG } = require('./catalog');
 
 const WIN = process.platform === 'win32';
 // Windows の npm は npm.cmd なので shell 経由で起動する
@@ -40,11 +40,12 @@ function installed() {
   try {
     names = fs.readdirSync(dir);
   } catch {
-    return res;
+    names = [];
   }
-  for (const n of names) {
+  const items = names.map((n) => [n, path.join(dir, n)]);
+  for (const x of CATALOG) if (x.pkg) items.push([x.name, path.join(globalRoot(), ...x.pkg.split('/'))]);
+  for (const [n, p] of items) {
     try {
-      const p = path.join(dir, n);
       const pkg = JSON.parse(fs.readFileSync(path.join(p, 'package.json'), 'utf8'));
       res[n] = { version: pkg.version, link: fs.lstatSync(p).isSymbolicLink() };
     } catch {
