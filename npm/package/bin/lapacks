@@ -28,6 +28,8 @@ ${c.bold('オプション:')}
   -h, --help       このヘルプ
   -v, --version    バージョン
 
+${c.gray('※ @lapius のパッケージは pnpm 前提です。pnpm add -g で入れてください（npm との二重インストール不可）。')}
+
 作者: Lapius (https://github.com/Lapius7)
 `;
 

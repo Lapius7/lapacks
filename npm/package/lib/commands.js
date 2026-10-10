@@ -358,6 +358,7 @@ async function doctor(o) {
   const pmName = sys.pm();
   const pmv = require('child_process').spawnSync(pmName, ['-v'], { encoding: 'utf8', ...(sys.WIN ? { shell: true } : {}) });
   add('環境', pmv.status === 0 ? 'ok' : 'ng', pmv.status === 0 ? `${pmName} ${pmv.stdout.trim()}` : `${pmName} が見つかりません`);
+  if (pmName === 'npm') add('環境', 'warn', '@lapius のパッケージは pnpm 前提です（今は npm を使っています）', 'pnpm add -g @lapius/lapacks');
   const bin = sys.globalBin();
   const onPath = (process.env.PATH || '').split(path.delimiter).some((d) => d && sys.sameDir(d, bin));
   add('環境', onPath ? 'ok' : 'ng', `グローバルの bin ${c.gray(bin)}`, onPath ? '' : 'このディレクトリを PATH に加えてください');

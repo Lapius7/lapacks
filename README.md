@@ -23,6 +23,8 @@
 pnpm add -g @lapius/lapacks
 ```
 
+> @lapius のパッケージは **pnpm 前提**です。npm と pnpm の両方に入れるとコマンドが二重になるため、`pnpm add -g` だけを使ってください。
+
 Node.js 18 以上が必要です（Linux / macOS / Windows）。依存パッケージはありません。
 
 ## 使い方
