@@ -211,14 +211,14 @@ async function run() {
     row('リポジトリ', c.blue(p.homepage));
     row('npm', c.blue(`https://www.npmjs.com/package/${p.full}`));
     L.push('');
-    if (p.status === 'missing') row('入れるには', c.gray(`npm i -g ${p.full}`));
-    else if (p.status === 'outdated') row('更新するには', c.gray(`npm i -g ${p.full}@latest`));
-    else row('消すには', c.gray(`npm rm -g ${p.full}`));
+    if (p.status === 'missing') row('入れるには', c.gray(sys.cmdText('install', p.full)));
+    else if (p.status === 'outdated') row('更新するには', c.gray(sys.cmdText('install', `${p.full}@latest`)));
+    else row('消すには', c.gray(sys.cmdText('remove', p.full)));
     return L;
   }
 
   function logView(W, H) {
-    const L = ['', '  ' + c.bold('npm の出力'), ''];
+    const L = ['', '  ' + c.bold(`${sys.pm()} の出力`), ''];
     const lines = String(s.log || '').split('\n').filter((l) => l.trim());
     for (const l of lines.slice(-Math.max(1, H - 4))) L.push('  ' + c.gray(truncate(l, W - 4)));
     return L;
@@ -250,8 +250,8 @@ async function run() {
       render();
     }, 80);
     const t = Date.now();
-    const args = kind === 'remove' ? ['rm', '-g', ...ps.map((p) => p.full)] : ['i', '-g', ...ps.map((p) => `${p.full}@latest`)];
-    const r = await sys.npm(args, (l) => (s.busy = `${verb} ${c.bold(names)}  ${c.gray(truncate(l, 40))}`));
+    const args = sys.cmdArgs(kind === 'remove' ? 'remove' : 'install', ps.map((p) => (kind === 'remove' ? p.full : `${p.full}@latest`)));
+    const r = await sys.run(args, (l) => (s.busy = `${verb} ${c.bold(names)}  ${c.gray(truncate(l, 40))}`));
     clearInterval(timer);
     s.busy = '';
     s.log = r.output;
@@ -260,7 +260,7 @@ async function run() {
     for (const p of ps) s.sel.delete(p.name);
     if (r.code !== 0) {
       const e = sys.npmError(r.output);
-      say(`npm が失敗しました: ${(e.hint[0] || e.lines[0] || '').slice(0, 80)}  ${c.gray('l で出力を表示')}`, 'err');
+      say(`${sys.pm()} が失敗しました: ${(e.hint[0] || e.lines[0] || '').slice(0, 80)}  ${c.gray('l で出力を表示')}`, 'err');
     } else {
       const done = { install: '入れました', update: '更新しました', remove: '消しました' }[kind];
       say(`${names} を${done} ${c.gray(`(${sec}s)`)}`, 'ok');

@@ -194,16 +194,16 @@ async function info(o) {
   return 0;
 }
 
-// npm i -g / npm rm -g をスピナー付きで実行する
+// pnpm add -g / npm i -g などをスピナー付きで実行する
 async function runNpm(args, label) {
   const sp = spinner(label);
   const t = Date.now();
-  const r = await sys.npm(args, (l) => sp.set(`${label} ${c.gray(truncate(l, 40))}`));
+  const r = await sys.run(args, (l) => sp.set(`${label} ${c.gray(truncate(l, 40))}`));
   sp.stop();
   const sec = ((Date.now() - t) / 1000).toFixed(1);
   if (r.code !== 0) {
     const e = sys.npmError(r.output);
-    err(`${c.red('✗')} npm が失敗しました ${c.gray(`(${sec}s, 終了コード ${r.code})`)}`);
+    err(`${c.red('✗')} ${sys.pm()} が失敗しました ${c.gray(`(${sec}s, 終了コード ${r.code})`)}`);
     for (const l of e.lines) err('  ' + c.gray(l));
     for (const h of e.hint) err('  ' + c.yellow('→ ') + h);
   }
@@ -289,7 +289,7 @@ async function update(o) {
 async function apply(ps, kind) {
   const specs = ps.map((p) => `${p.full}@latest`);
   const label = `${kind === 'install' ? 'インストール中' : '更新中'} ${c.bold(ps.map((p) => p.name).join(', '))}`;
-  const r = await runNpm(['i', '-g', ...specs], label);
+  const r = await runNpm(sys.cmdArgs('install', specs), label);
   if (!r.ok) return 1;
   const inst = sys.installed();
   for (const p of ps) {
@@ -335,7 +335,7 @@ async function remove(o) {
       return 1;
     }
   }
-  const r = await runNpm(['rm', '-g', ...ps.map((p) => p.full)], `削除中 ${c.bold(ps.map((p) => p.name).join(', '))}`);
+  const r = await runNpm(sys.cmdArgs('remove', ps.map((p) => p.full)), `削除中 ${c.bold(ps.map((p) => p.name).join(', '))}`);
   if (!r.ok) return 1;
   for (const p of ps) log(`${c.green('✓')} ${c.bold(p.name)} を消しました`);
   return 0;
@@ -355,8 +355,9 @@ async function doctor(o) {
 
   const [maj] = process.versions.node.split('.').map(Number);
   add('環境', maj >= 18 ? 'ok' : 'ng', `Node.js ${process.versions.node}`, maj >= 18 ? '' : 'Node.js 18 以降が必要です');
-  const npmv = require('child_process').spawnSync('npm', ['-v'], { encoding: 'utf8', ...(sys.WIN ? { shell: true } : {}) });
-  add('環境', npmv.status === 0 ? 'ok' : 'ng', npmv.status === 0 ? `npm ${npmv.stdout.trim()}` : 'npm が見つかりません');
+  const pmName = sys.pm();
+  const pmv = require('child_process').spawnSync(pmName, ['-v'], { encoding: 'utf8', ...(sys.WIN ? { shell: true } : {}) });
+  add('環境', pmv.status === 0 ? 'ok' : 'ng', pmv.status === 0 ? `${pmName} ${pmv.stdout.trim()}` : `${pmName} が見つかりません`);
   const bin = sys.globalBin();
   const onPath = (process.env.PATH || '').split(path.delimiter).some((d) => d && sys.sameDir(d, bin));
   add('環境', onPath ? 'ok' : 'ng', `グローバルの bin ${c.gray(bin)}`, onPath ? '' : 'このディレクトリを PATH に加えてください');

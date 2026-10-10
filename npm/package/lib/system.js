@@ -1,4 +1,4 @@
-// npm のグローバル領域と、PATH・前提ツールの確認。
+// パッケージマネージャ（pnpm / npm）のグローバル領域と、PATH・前提ツールの確認。
 'use strict';
 
 const fs = require('fs');
@@ -11,6 +11,33 @@ const WIN = process.platform === 'win32';
 const npmOpts = WIN ? { shell: true } : {};
 
 let rootCache = null;
+let pmCache = null;
+
+function hasCmd(cmd) {
+  return spawnSync(cmd, ['-v'], { encoding: 'utf8', ...npmOpts }).status === 0;
+}
+
+// 使うパッケージマネージャ。LAPACKS_PM（npm / pnpm）> lapacks 自身の置き場所 > pnpm があれば pnpm、なければ npm
+function pm() {
+  if (pmCache) return pmCache;
+  const env = process.env.LAPACKS_PM;
+  if (env === 'npm' || env === 'pnpm') return (pmCache = env);
+  const self = path.resolve(__dirname, '..');
+  if (path.basename(path.dirname(self)) === SCOPE) pmCache = /[\\/]\.?pnpm[\\/]/i.test(self) ? 'pnpm' : 'npm';
+  else pmCache = hasCmd('pnpm') ? 'pnpm' : 'npm';
+  return pmCache;
+}
+
+// 入れる・消すときの引数
+function cmdArgs(kind, specs) {
+  if (pm() === 'pnpm') return [kind === 'remove' ? 'remove' : 'add', '-g', ...specs];
+  return [kind === 'remove' ? 'rm' : 'i', '-g', ...specs];
+}
+
+// 案内に出す手動コマンド
+function cmdText(kind, spec) {
+  return `${pm()} ${cmdArgs(kind, [spec]).join(' ')}`;
+}
 
 // npm のグローバル node_modules。lapacks 自身が <root>/@lapius/lapacks にあればそこから求める
 // （npm を起動しない分速い）。開発中などで当てはまらなければ npm root -g を使う
@@ -26,14 +53,20 @@ function globalRoot() {
   return rootCache;
 }
 
-// npm i -g で入れたコマンドの置き場所
+// グローバルで入れたコマンドの置き場所
 function globalBin() {
+  if (pm() === 'pnpm') {
+    const r = spawnSync('pnpm', ['bin', '-g'], { encoding: 'utf8', ...npmOpts });
+    const b = (r.stdout || '').trim();
+    if (b) return b;
+  }
   const root = globalRoot();
   return WIN ? path.dirname(root) : path.join(path.dirname(path.dirname(root)), 'bin');
 }
 
 // 入っている @lapius パッケージ → { version, link }
 function installed() {
+  if (pm() === 'pnpm') return installedPnpm();
   const dir = path.join(globalRoot(), SCOPE);
   const res = {};
   let names = [];
@@ -55,10 +88,31 @@ function installed() {
   return res;
 }
 
-// npm を実行して { code, output } を返す。onLine で進捗の行を受け取れる
-function npm(args, onLine) {
+// pnpm はパッケージごとに別の場所へ入るので、pnpm ls -g の結果から読む
+function installedPnpm() {
+  const res = {};
+  const r = spawnSync('pnpm', ['ls', '-g', '--depth=0', '--json'], { encoding: 'utf8', ...npmOpts });
+  let list = [];
+  try {
+    list = JSON.parse(r.stdout || '[]');
+  } catch {
+    list = [];
+  }
+  for (const proj of list) {
+    for (const [full, info] of Object.entries(proj.dependencies || {})) {
+      const item = CATALOG.find((x) => x.pkg === full);
+      if (full.startsWith(SCOPE + '/')) res[full.slice(SCOPE.length + 1)] = { version: info.version, link: false };
+      else if (item) res[item.name] = { version: info.version, link: false };
+    }
+  }
+  return res;
+}
+
+// pm（pnpm / npm）を実行して { code, output } を返す。onLine で進捗の行を受け取れる
+function run(args, onLine) {
   return new Promise((resolve) => {
-    const child = spawn('npm', [...args, '--no-fund', '--no-audit', '--loglevel=error'], {
+    const flags = pm() === 'pnpm' ? ['--reporter=append-only'] : ['--no-fund', '--no-audit', '--loglevel=error'];
+    const child = spawn(pm(), [...args, ...flags], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, npm_config_update_notifier: 'false' },
       ...npmOpts,
@@ -75,11 +129,11 @@ function npm(args, onLine) {
   });
 }
 
-// npm のエラー出力から、原因が分かる行だけを取り出す
+// pm のエラー出力から、原因が分かる行だけを取り出す
 function npmError(output) {
   const lines = String(output)
     .split('\n')
-    .map((l) => l.replace(/^npm (ERR!|error)\s*/, '').trim())
+    .map((l) => l.replace(/^(npm (ERR!|error)|ERR_PNPM_\w+)\s*/, '').trim())
     .filter((l) => l && !/^(A complete log|Log files were|\/.*debug.*\.log$)/.test(l));
   const hint = [];
   const all = lines.join('\n');
@@ -207,4 +261,4 @@ function sameDir(a, b) {
   return WIN ? x.toLowerCase() === y.toLowerCase() : x === y;
 }
 
-module.exports = { WIN, sameDir, globalRoot, globalBin, installed, npm, npmError, which, checkReq, shellShadows };
+module.exports = { WIN, sameDir, globalRoot, globalBin, installed, pm, cmdArgs, cmdText, run, npm: run, npmError, which, checkReq, shellShadows };
