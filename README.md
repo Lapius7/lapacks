@@ -20,7 +20,7 @@
 ## インストール
 
 ```bash
-npm i -g @lapius/lapacks
+pnpm add -g @lapius/lapacks
 ```
 
 Node.js 18 以上が必要です（Linux / macOS / Windows）。依存パッケージはありません。
@@ -79,7 +79,7 @@ lapacks doctor           # PATH・前提ツール・コマンドの衝突を診�
 ## しくみ
 
 - パッケージの一覧は npm レジストリから取得します（`@lapius` で新しく公開されたものも自動で出ます）。キャッシュは `~/.cache/lapacks/`（Windows は `%LOCALAPPDATA%\lapacks\`）。
-- インストールや更新は内部で `npm i -g @lapius/<名前>` を実行するだけなので、npm で直接入れたものもそのまま管理できます。
+- インストールや更新は内部で `pnpm add -g @lapius/<名前>` を実行するだけなので、npm で直接入れたものもそのまま管理できます。
 - 入れたあとに、前提ツール（Python・Bun）が足りないときや、シェルの関数・エイリアスがコマンド名を隠しているときは警告します。
 
 ## 開発
