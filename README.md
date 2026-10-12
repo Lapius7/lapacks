@@ -38,6 +38,7 @@ lapacks install why sca  # 入れる（all ですべて）
 lapacks update           # 更新があるものをすべて更新（lapacks 自身も）
 lapacks update laping    # 指定したものだけ更新
 lapacks remove clilap    # 消す（確認あり、-y で省略）
+lapacks config           # 設定の表示（config pm npm で npm に変更）
 lapacks doctor           # PATH・前提ツール・コマンドの衝突を診断
 ```
 
@@ -81,7 +82,8 @@ lapacks doctor           # PATH・前提ツール・コマンドの衝突を診�
 ## しくみ
 
 - パッケージの一覧は npm レジストリから取得します（`@lapius` で新しく公開されたものも自動で出ます）。キャッシュは `~/.cache/lapacks/`（Windows は `%LOCALAPPDATA%\lapacks\`）。
-- インストールや更新は内部で `pnpm add -g @lapius/<名前>`（npm で入れた lapacks なら `npm i -g`）を実行するだけです。使うのは lapacks 自身が入っている側のパッケージマネージャで、環境変数 `LAPACKS_PM=pnpm` / `npm` で固定できます。もう一方で入れたものは一覧に出ません
+- インストールや更新は内部で `pnpm add -g @lapius/<名前>` を実行するだけです。使うパッケージマネージャは既定で pnpm です。変更するには `lapacks config pm npm` を実行します（設定ファイルに保存され、`lapacks config pm --unset` で既定に戻ります）。環境変数 `LAPACKS_PM=pnpm` / `npm` を設定した場合は、そちらが設定ファイルより優先されます。もう一方で入れたものは一覧に出ません
+- 設定ファイルは `~/.config/lapacks/config.json`（`XDG_CONFIG_HOME` があればその下、Windows は `%APPDATA%\lapacks\config.json`）です。`LAPACKS_CONFIG` で場所を変えられます
 - 入れたあとに、前提ツール（Python・Bun）が足りないときや、シェルの関数・エイリアスがコマンド名を隠しているときは警告します。
 
 ## 開発

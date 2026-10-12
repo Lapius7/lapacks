@@ -17,6 +17,7 @@ ${c.bold('使い方:')}
   lapacks update [名前...]     更新する（省略すると入っているものすべて）
   lapacks remove <名前...>     消す（${c.cyan('-y')} で確認を省略）
   lapacks doctor              環境と、コマンドが正しく使えるかを確認
+  lapacks config              設定の表示（${c.cyan('config pm npm')} で npm に変更、${c.cyan('--unset')} で既定の pnpm に戻す）
 
   名前は ${c.cyan('sca-cli')} / ${c.cyan('@lapius/sca-cli')} / コマンド名の ${c.cyan('sca')} のどれでも指定できます。
 
@@ -59,6 +60,7 @@ async function main(argv) {
     else if (a === '-y' || a === '--yes') o.yes = true;
     else if (a === '-i' || a === '--installed') o.installed = true;
     else if (a === '--json') o.json = true;
+    else if (a === '--unset') o.unset = true;
     else if (a === '--no-color') ui.setColor(false);
     else if (a.startsWith('-')) {
       console.error(`lapacks: 不明なオプション ${a}（lapacks -h でヘルプ）`);
@@ -88,6 +90,8 @@ async function main(argv) {
       return cmd.remove(o);
     case 'doctor':
       return cmd.doctor(o);
+    case 'config':
+      return cmd.config(o);
     default:
       console.error(`lapacks: 不明なコマンド ${sub}（lapacks -h でヘルプ）`);
       return 2;

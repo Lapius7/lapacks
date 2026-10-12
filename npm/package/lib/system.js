@@ -17,14 +17,46 @@ function hasCmd(cmd) {
   return spawnSync(cmd, ['-v'], { encoding: 'utf8', ...npmOpts }).status === 0;
 }
 
-// 使うパッケージマネージャ。LAPACKS_PM（npm / pnpm）> lapacks 自身の置き場所 > pnpm があれば pnpm、なければ npm
-function pm() {
-  if (pmCache) return pmCache;
+// 設定ファイル。LAPACKS_CONFIG > $XDG_CONFIG_HOME/lapacks/config.json > ~/.config/lapacks/config.json（Windows は %APPDATA%\\lapacks\\config.json）
+function configPath() {
+  if (process.env.LAPACKS_CONFIG) return process.env.LAPACKS_CONFIG;
+  const base = WIN ? process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming') : process.env.XDG_CONFIG_HOME || path.join(require('os').homedir(), '.config');
+  return path.join(base, 'lapacks', 'config.json');
+}
+
+function readConfig() {
+  try {
+    const j = JSON.parse(fs.readFileSync(configPath(), 'utf8'));
+    return j && typeof j === 'object' ? j : {};
+  } catch {
+    return {};
+  }
+}
+
+// 設定を書く（value が undefined なら消す）
+function writeConfig(key, value) {
+  const cfg = readConfig();
+  if (value === undefined) delete cfg[key];
+  else cfg[key] = value;
+  const file = configPath();
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(cfg, null, 2) + '\n');
+  pmCache = null;
+}
+
+const PMS = ['pnpm', 'npm'];
+
+// 使うパッケージマネージャと、その決まり方。優先順: 環境変数 LAPACKS_PM > 設定ファイルの pm > 既定の pnpm
+function pmSource() {
   const env = process.env.LAPACKS_PM;
-  if (env === 'npm' || env === 'pnpm') return (pmCache = env);
-  const self = path.resolve(__dirname, '..');
-  if (path.basename(path.dirname(self)) === SCOPE) pmCache = /[\\/]\.?pnpm[\\/]/i.test(self) ? 'pnpm' : 'npm';
-  else pmCache = hasCmd('pnpm') ? 'pnpm' : 'npm';
+  if (PMS.includes(env)) return { pm: env, source: 'env' };
+  const cfg = readConfig().pm;
+  if (PMS.includes(cfg)) return { pm: cfg, source: 'config' };
+  return { pm: 'pnpm', source: 'default' };
+}
+
+function pm() {
+  if (!pmCache) pmCache = pmSource().pm;
   return pmCache;
 }
 
@@ -261,4 +293,4 @@ function sameDir(a, b) {
   return WIN ? x.toLowerCase() === y.toLowerCase() : x === y;
 }
 
-module.exports = { WIN, sameDir, globalRoot, globalBin, installed, pm, cmdArgs, cmdText, run, npm: run, npmError, which, checkReq, shellShadows };
+module.exports = { PMS, configPath, readConfig, writeConfig, pmSource, WIN, sameDir, globalRoot, globalBin, installed, pm, cmdArgs, cmdText, run, npm: run, npmError, which, checkReq, shellShadows };

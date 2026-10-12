@@ -358,7 +358,7 @@ async function doctor(o) {
   const pmName = sys.pm();
   const pmv = require('child_process').spawnSync(pmName, ['-v'], { encoding: 'utf8', ...(sys.WIN ? { shell: true } : {}) });
   add('環境', pmv.status === 0 ? 'ok' : 'ng', pmv.status === 0 ? `${pmName} ${pmv.stdout.trim()}` : `${pmName} が見つかりません`);
-  if (pmName === 'npm') add('環境', 'warn', '@lapius のパッケージは pnpm 前提です（今は npm を使っています）', 'pnpm add -g @lapius/lapacks');
+  if (pmName === 'npm') add('環境', 'warn', '@lapius のパッケージは pnpm 前提です（今は npm を使う設定です）', 'lapacks config pm pnpm');
   const bin = sys.globalBin();
   const onPath = (process.env.PATH || '').split(path.delimiter).some((d) => d && sys.sameDir(d, bin));
   add('環境', onPath ? 'ok' : 'ng', `グローバルの bin ${c.gray(bin)}`, onPath ? '' : 'このディレクトリを PATH に加えてください');
@@ -406,4 +406,39 @@ async function doctor(o) {
   return problems ? 1 : 0;
 }
 
-module.exports = { VERSION, loadState, annotate, list, info, install, update, remove, doctor, pick, shadowWarnings };
+// 設定の表示・変更。lapacks config / lapacks config pm / lapacks config pm npm / lapacks config pm --unset
+async function config(o) {
+  const [key, value] = o.args;
+  const show = () => {
+    const { pm, source } = sys.pmSource();
+    const from = { env: '環境変数 LAPACKS_PM', config: '設定ファイル', default: '既定' }[source];
+    log(`  ${c.bold('pm')}  ${c.cyan(pm)}  ${c.gray(`(${from})`)}`);
+  };
+  if (!key) {
+    log(` ${c.bold(c.accent('lapacks config'))}  ${c.gray(sys.configPath())}`);
+    show();
+    log(c.gray('\n  変更: lapacks config pm <pnpm|npm>   既定に戻す: lapacks config pm --unset'));
+    return 0;
+  }
+  if (key !== 'pm') {
+    err(`lapacks: 不明な設定 ${key}（設定できるのは pm のみ）`);
+    return 2;
+  }
+  if (o.unset) {
+    sys.writeConfig('pm', undefined);
+    log(`${c.green('✓')} pm を既定（pnpm）に戻しました`);
+    return 0;
+  }
+  if (value === undefined) return show(), 0;
+  if (!sys.PMS.includes(value)) {
+    err(`lapacks: pm には ${sys.PMS.join(' か ')} を指定してください（${value}）`);
+    return 2;
+  }
+  sys.writeConfig('pm', value);
+  log(`${c.green('✓')} pm を ${c.cyan(value)} にしました ${c.gray(sys.configPath())}`);
+  if (process.env.LAPACKS_PM && process.env.LAPACKS_PM !== value) log(c.yellow(`→ 環境変数 LAPACKS_PM=${process.env.LAPACKS_PM} が優先されます`));
+  if (value === 'npm') log(c.yellow('→ @lapius のパッケージは pnpm 前提です。npm と pnpm の両方に入れるとコマンドが二重になります'));
+  return 0;
+}
+
+module.exports = { config, VERSION, loadState, annotate, list, info, install, update, remove, doctor, pick, shadowWarnings };
