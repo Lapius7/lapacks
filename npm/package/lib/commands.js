@@ -287,7 +287,7 @@ async function update(o) {
 }
 
 async function apply(ps, kind) {
-  const specs = ps.map((p) => `${p.full}@latest`);
+  const specs = ps.map((p) => `${p.full}@${p.latest || 'latest'}`);
   const label = `${kind === 'install' ? 'インストール中' : '更新中'} ${c.bold(ps.map((p) => p.name).join(', '))}`;
   const r = await runNpm(sys.cmdArgs('install', specs), label);
   if (!r.ok) return 1;

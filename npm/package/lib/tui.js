@@ -212,7 +212,7 @@ async function run() {
     row('npm', c.blue(`https://www.npmjs.com/package/${p.full}`));
     L.push('');
     if (p.status === 'missing') row('入れるには', c.gray(sys.cmdText('install', p.full)));
-    else if (p.status === 'outdated') row('更新するには', c.gray(sys.cmdText('install', `${p.full}@latest`)));
+    else if (p.status === 'outdated') row('更新するには', c.gray(sys.cmdText('install', `${p.full}@${p.latest || 'latest'}`)));
     else row('消すには', c.gray(sys.cmdText('remove', p.full)));
     return L;
   }
@@ -250,7 +250,7 @@ async function run() {
       render();
     }, 80);
     const t = Date.now();
-    const args = sys.cmdArgs(kind === 'remove' ? 'remove' : 'install', ps.map((p) => (kind === 'remove' ? p.full : `${p.full}@latest`)));
+    const args = sys.cmdArgs(kind === 'remove' ? 'remove' : 'install', ps.map((p) => (kind === 'remove' ? p.full : `${p.full}@${p.latest || 'latest'}`)));
     const r = await sys.run(args, (l) => (s.busy = `${verb} ${c.bold(names)}  ${c.gray(truncate(l, 40))}`));
     clearInterval(timer);
     s.busy = '';
