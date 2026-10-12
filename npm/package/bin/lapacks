@@ -14,7 +14,7 @@ ${c.bold('使い方:')}
   lapacks outdated            更新できるものだけ
   lapacks info <名前>          説明・コマンド・必要なもの・リンク
   lapacks install <名前...>    入れる（${c.cyan('all')} ですべて）
-  lapacks update [名前...]     更新する（省略すると入っているものすべて）
+  lapacks update [名前...]     更新する（省略すると lapacks 本体と入っているものすべて）
   lapacks remove <名前...>     消す（${c.cyan('-y')} で確認を省略）
   lapacks doctor              環境と、コマンドが正しく使えるかを確認
   lapacks config              設定の表示（${c.cyan('config pm npm')} で npm に変更、${c.cyan('--unset')} で既定の pnpm に戻す）

@@ -277,7 +277,7 @@ async function update(o) {
   }
   if (!ps.length) {
     const n = st.packages.filter((p) => p.status !== 'missing').length;
-    log(`${c.green('✓')} すべて最新です ${c.gray(`（入っている ${n} 件）`)}`);
+    log(`${c.green('✓')} すべて最新です ${c.gray(`（lapacks 本体 v${VERSION} と、入っているパッケージ ${n} 件）`)}`);
     return 0;
   }
   log();
