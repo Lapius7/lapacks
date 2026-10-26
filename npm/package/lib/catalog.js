@@ -25,6 +25,7 @@ const CATALOG = [
   { name: 'clilap', cat: 'Web', short: 'clilap.org（天気・DNS・ハッシュなど）のクライアント', bin: ['clilap'] },
   { name: 'clilap-codepush', cat: 'Web', short: 'codepush.clilap.org にファイルを置いて共有（TUI）', bin: ['codepush'], needs: ['python'] },
   { name: 'sca-cli', cat: 'Web', short: 'chatapp.lapius7.com のチャットをターミナルで', bin: ['sca'], needs: ['python?'] },
+  { name: 'dela-cli', cat: 'Web', short: 'ローカルのポートを try.lapius7.si で一時公開（登録・鍵なし）', bin: ['dela'] },
   { name: 'bin-cli', cat: 'Web', short: 'bin.lapius7.com（LapBin）のクライアント', bin: ['bin'] },
   { name: 'ohatwikeeper-cli', pkg: '@ohatwikeeper/cli', cat: 'Web', short: 'おはツイKeeper 公式 CLI', bin: ['ohax'] },
   { name: 'cli-othello', cat: 'ゲーム', short: 'ターミナルで遊ぶオセロ（5 段階の AI）', bin: ['othello'], needs: ['python'] },
@@ -33,8 +34,8 @@ const CATALOG = [
 
 const CATS = ['シェル', '言語', '開発', 'Web', 'メディア', 'ゲーム', 'その他'];
 
-// 公開はしているが作者専用のもの（dela-cli は登録済みの鍵でしか接続できない）。一覧には出さない
-const HIDDEN = new Set(['dela-cli']);
+// 公開はしているが一覧には出さないもの
+const HIDDEN = new Set([]);
 
 // OS/CPU 別のバイナリパッケージ（本体の optionalDependencies）は一覧に出さない
 const PLATFORM = /-(linux|darwin|win32|freebsd)-(x64|arm64|ia32|arm)$/;
